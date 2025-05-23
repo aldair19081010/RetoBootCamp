@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Personas</title>
+    <style>
+        table { 
+            border-collapse: collapse; 
+            width: 100%; 
+        }
+        th, td { 
+            border: 1px solid #222; 
+            padding: 8px; text-align: left; 
+            font-size: 1rem; 
+        }
+        th { 
+            background: #223366; 
+            color: #fff;
+        }
+        tr:nth-child(even) { 
+            background: #f2f2f2; 
+        }
+        img { 
+            border-radius: 50%; 
+            width: 40px; height: 40px; 
+            object-fit: cover;
+            border: 1px solid #223366;
+            }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f7f7f7;
+            margin: 0; 
+            padding: 0; 
+        }
+        h1 { 
+            text-align: center; 
+            color: #223366; 
+            margin-top: 24px; 
+        }
+        .container { 
+            max-width: 900px; 
+            margin: 32px auto; background: #fff; 
+            border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); 
+            padding: 24px; }
+        @media (max-width: 700px) {
+            .container { padding: 8px; }
+            table, th, td { font-size: 0.95rem; }
+            img { width: 28px; height: 28px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Lista de 10 Personas</h1>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; flex-wrap: wrap; gap: 10px;">
+            <div>
+                <input type="text" id="filtro-nombre" placeholder="Filtrar por nombre..." style="padding: 7px 12px; border-radius: 6px; border: 1px solid #bbb; font-size: 1rem;">
+                <select id="filtro-genero" style="padding: 7px 12px; border-radius: 6px; border: 1px solid #bbb; font-size: 1rem;">
+                    <option value="">Todos los géneros</option>
+                    <option value="male">Masculino</option>
+                    <option value="female">Femenino</option>
+                </select>
+            </div>
+            <button id="recargar" style="background: #3949ab; color: #fff; border: none; border-radius: 6px; padding: 8px 18px; font-size: 1rem; cursor: pointer; font-weight: 600;">Recargar</button>
+        </div>
+        <table id="tabla-personas">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Género</th>
+                    <th>Ubicación</th>
+                    <th>Correo electrónico</th>
+                    <th>Feca de nacimiento</th>
+                    <th>Fotografía</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    <script>
+    let personasGlobal = [];
+    const tbody = document.querySelector('#tabla-personas tbody');
+    const inputNombre = document.getElementById('filtro-nombre');
+    const selectGenero = document.getElementById('filtro-genero');
+    const btnRecargar = document.getElementById('recargar');
+
+    function renderTabla(personas) {
+        tbody.innerHTML = '';
+        for (const persona of personas) {
+            const fila = document.createElement('tr');
+            fila.innerHTML = `
+                <td>${persona.nombre}</td>
+                <td>${persona.genero === 'male' ? 'Masculino' : persona.genero === 'female' ? 'Femenino' : persona.genero}</td>
+                <td>${persona.ubicacion}</td>
+                <td>${persona.email}</td>
+                <td>${new Date(persona.fecha_nacimiento).toLocaleDateString('es-ES')}</td>
+                <td><img src="${persona.foto}" alt="Foto de ${persona.nombre}"></td>
+            `;
+            tbody.appendChild(fila);
+        }
+    }
+
+    function filtrar() {
+        let resultado = personasGlobal;
+        const texto = inputNombre.value.trim().toLowerCase();
+        const genero = selectGenero.value;
+        if (texto.length > 0) {
+            resultado = resultado.filter(p => p.nombre.toLowerCase().includes(texto));
+        }
+        if (genero) {
+            resultado = resultado.filter(p => p.genero === genero);
+        }
+        renderTabla(resultado);
+    }
+
+    function cargarPersonas() {
+        tbody.innerHTML = '<tr><td colspan="6">Cargando...</td></tr>';
+        fetch('api.php')
+            .then(res => res.json())
+            .then(datos => {
+                personasGlobal = datos;
+                filtrar();
+            })
+            .catch(() => {
+                tbody.innerHTML = '<tr><td colspan="6">Error al cargar los datos</td></tr>';
+            });
+    }
+
+    inputNombre.addEventListener('input', filtrar);
+    selectGenero.addEventListener('change', filtrar);
+    btnRecargar.addEventListener('click', cargarPersonas);
+
+    cargarPersonas();
+    </script>
+</body>
+</html>
+h
